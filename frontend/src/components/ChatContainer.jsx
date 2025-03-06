@@ -10,6 +10,8 @@ const ChatContainer = () => {
 
   const {messages, getMessages, isMessageLoading, selectedUser, subscribeToMessages, unsubscribeFromMessages} = useChatStore();
 
+
+
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
 
@@ -37,14 +39,12 @@ useEffect(() =>{
     <MessageInput />
   </div> 
   )
-
-
   return (
     <div className="flex-1 flex flex-col overflow-auto">
       <ChatHeader/>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message, index) => (
+        {messages.length > 0 && messages.map((message, index) => (
           <div
             key={message._id || index}
             className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}
@@ -75,7 +75,7 @@ useEffect(() =>{
                   className="sm:max-w-[200px] rounded-md mb-2"
                 />
               )}
-              {message.text && <p>{message.text}</p>}
+              {message && <p>{message.text}</p>}
             </div>
           </div>
         ))}

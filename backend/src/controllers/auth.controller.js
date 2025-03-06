@@ -21,6 +21,13 @@ export const signup =  async(req, res) =>{
             return res.status(400).json({message: "Password must be atleast 6 characters"});
         }
 
+           // Validate email format using regex
+           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+           if (!emailRegex.test(email)) {
+               return res.status(400).json({ message: "Invalid email format" });
+           }
+
+
         //check if user with the same email exists in the db or not
         const user = await User.findOne({email});
         if(user){
@@ -30,15 +37,19 @@ export const signup =  async(req, res) =>{
         //hashed the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
+        const verificationToken = Math.floor(100000 + Math.random() * 900000 ).toString();
 
         // create object of user to store the user as object in db
         const newUser = new User({
             fullName,
             email,
             password: hashedPassword,
-        });
+            verificationToken,
+            verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
 
-/*         console.log(newUser); */
+        });
+/* 
+         console.log("This is your new user: ",newUser);  */
         // generate the jsonweb token for the user and pass it to the cookie
         if(newUser){
             // generate jwt token here
@@ -72,7 +83,17 @@ export const login =  async(req, res) =>{
 
     try {
          // check if email exists in the database or not
-         const user = await User.findOne({email});   
+         const user = await User.findOne({email});
+         
+         
+         // Validate email format using regex
+         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+         if (!emailRegex.test(email)) {
+             return res.status(400).json({ message: "Invalid email format" });
+         }
+
+
+         
          if(!user){
             return res.status(400).json({message: "Invalid credentials"});
          }
@@ -85,7 +106,7 @@ export const login =  async(req, res) =>{
          }
 
          generateToken(user.id, res);
-/*          console.log("User login successfully"); */
+/*           console.log("User login successfully"); */
          res.status(200).json({
             id: user._id,
             fullName: user.fullName,
@@ -126,7 +147,7 @@ export const updateProfile = async(req, res) =>{
         const uploadResponse = await cloudinary.uploader.upload(profilepic);
         const updatedUser = await User.findByIdAndUpdate(userId, {profilepic: uploadResponse.secure_url}, {new: true});
 
-        console.log("Updated user with profile: ", updatedUser);
+/*         console.log("Updated user with profile: ", updatedUser); */
 
         res.status(200).json(updatedUser);
     } catch (error) {
@@ -139,7 +160,7 @@ export const check = async(req, res) =>{
     try {
         res.status(200).json(req.user);
     } catch (error) {
-/*         console.log("Error in checkAuth controller", error.message); */
+/*          console.log("Error in checkAuth controller", error.message); */
         res.status(500).json({message: "Internal server error"});
     }
 }

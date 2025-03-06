@@ -53,6 +53,7 @@ export const sendMessage = async(req, res) =>{
   try {
     const { text, image } = req.body;
 
+
     const { id: receiverId } = req.params;
 
     const senderId = req.user._id;
@@ -73,8 +74,8 @@ export const sendMessage = async(req, res) =>{
 
     await newMessage.save();
 
-
     const receiverSocketId = getReceiverSocketId(receiverId);
+
     if(receiverSocketId){
       io.to(receiverSocketId).emit("newMessage", newMessage);
     }
